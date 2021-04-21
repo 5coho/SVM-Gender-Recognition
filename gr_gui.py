@@ -1,19 +1,15 @@
 """
 
-The Gui file for crack detection
-loads the GUI.ui file, which is a qt5 designer file, and adds functionality.
-Future:
-    Error handling needs to be added. LOTS of error handling
-    Image resize
-    Capture Resize
-    Fix how detectCrack is called --> pass parameters to Thread is ugly
-
-__author__          = "Scott Howes"
-__email__           = "showes@unbc.ca"
-__version__         = "0.0.9"
-__python_version__  = "3.6.8"
+The Gui file Gender Recognition
+loads the gender_recognition_gui.ui file and adds functionality.
 
 """
+
+
+__author__          = "Scott Howes"
+__credits__         = "Scott Howes"
+__email__           = "showes@unbc.ca"
+__python_version__  = "3.9.4"
 
 
 #imports
@@ -44,7 +40,7 @@ class gr_gui(QWidget):
     #the constructor
     def __init__(self):
         super(gr_gui, self).__init__()
-        loadUi("gui/GUI.ui", self)
+        loadUi("gui/gender_recognition_gui.ui", self)
         self.image = None
         self.imageRecog = None
         self.cap = None

@@ -60,10 +60,10 @@ class gr_gui(QWidget):
         self.bttn_load_image.clicked.connect(self.bttn_load_image_clicked)
         #self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
         #self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
-        #self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
+        self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
         #self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
         #self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
-        #self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
+        self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
         #self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
         #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
         #self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
@@ -97,15 +97,13 @@ class gr_gui(QWidget):
     #The function that detects a cracks from an image and puts in label
     @pyqtSlot()
     def bttn_detect_clicked(self):
-        process = self._get_process()
         threshold = self.lcd_prob.value() * 0.01
-        roiSize = int(self.combo_size.currentText())
-        roiShift = int(self.combo_shift.currentText())
 
         imageCopy = self.image.copy()
 
         start = time.time()
-        self.imageCrack = self.cd.detectCrack(imageCopy, self.clf, threshold, roiSize, roiShift, process, self.check_red.isChecked(), self.check_red_rec.isChecked(), self.check_crack_prob.isChecked(), self.check_green.isChecked(), self.check_green_rec.isChecked(), self.check_smooth_prob.isChecked())
+        time.sleep(2)
+        #self.imageCrack = self.cd.detectCrack(imageCopy, self.clf, threshold, roiSize, roiShift, process, self.check_red.isChecked(), self.check_red_rec.isChecked(), self.check_crack_prob.isChecked(), self.check_green.isChecked(), self.check_green_rec.isChecked(), self.check_smooth_prob.isChecked())
         end = time.time()
 
         elapsed = end - start
@@ -207,25 +205,6 @@ class gr_gui(QWidget):
         filePath, _ = QFileDialog.getSaveFileName(None, "Save Image", "", "*.jpg;;*.jpeg;;*.png;;*.bmp")
         if filePath:
             cv2.imwrite(filePath, self.imageCrack)
-
-
-    #A function to get the image processing selected
-    def _get_process(self):
-
-        if self.radio_none.isChecked():
-            return "none"
-
-        elif self.radio_grayscale.isChecked():
-            return "grayscale"
-
-        elif self.radio_adaptive.isChecked():
-            return "adaptive"
-
-        elif self.radio_edge.isChecked():
-            return "edge"
-
-        elif self.radio_laplacian.isChecked():
-            return "laplacian"
 
 
 #the thread class for Video Capture

@@ -108,7 +108,7 @@
      <item row="0" column="0">
       <widget class="QLabel" name="label_c">
        <property name="toolTip">
-        <string notr="true"/>
+        <string notr="true">Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive. The penalty is a squared l2 penalty.</string>
        </property>
        <property name="toolTipDuration">
         <number>-1</number>
@@ -142,6 +142,9 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_kernel">
+       <property name="toolTip">
+        <string>Specifies the kernel type to be used in the algorithm. It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a callable. If none is given, ‘rbf’ will be used. If a callable is given it is used to pre-compute the kernel matrix from data matrices; that matrix should be an array of shape (n_samples, n_samples).</string>
+       </property>
        <property name="text">
         <string>Kernel:</string>
        </property>
@@ -184,6 +187,9 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_degree">
+       <property name="toolTip">
+        <string>Degree of the polynomial kernel function (‘poly’). Ignored by all other kernels.</string>
+       </property>
        <property name="text">
         <string>Degree:</string>
        </property>
@@ -204,6 +210,9 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_gamma">
+       <property name="toolTip">
+        <string>Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.</string>
+       </property>
        <property name="text">
         <string>Gamma:</string>
        </property>
@@ -231,6 +240,9 @@
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_coef0">
+       <property name="toolTip">
+        <string>Independent term in kernel function. It is only significant in ‘poly’ and ‘sigmoid’.</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::NoFrame</enum>
        </property>
@@ -254,6 +266,9 @@
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_shrinking">
+       <property name="toolTip">
+        <string>Whether to use the shrinking heuristic.</string>
+       </property>
        <property name="text">
         <string>Shrinking:</string>
        </property>
@@ -281,6 +296,9 @@
      </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_prob">
+       <property name="toolTip">
+        <string>Whether to enable probability estimates. This must be enabled prior to calling fit, will slow down that method as it internally uses 5-fold cross-validation, and predict_proba may be inconsistent with predict.</string>
+       </property>
        <property name="text">
         <string>Probability:</string>
        </property>
@@ -308,6 +326,9 @@
      </item>
      <item row="7" column="0">
       <widget class="QLabel" name="label_tol">
+       <property name="toolTip">
+        <string>Tolerance for stopping criterion.</string>
+       </property>
        <property name="text">
         <string>Tol:</string>
        </property>
@@ -328,6 +349,9 @@
      </item>
      <item row="8" column="0">
       <widget class="QLabel" name="label_cache">
+       <property name="toolTip">
+        <string>Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))</string>
+       </property>
        <property name="text">
         <string>Cache Size:</string>
        </property>
@@ -348,6 +372,9 @@
      </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_maxIter">
+       <property name="toolTip">
+        <string>Hard limit on iterations within solver, or -1 for no limit.</string>
+       </property>
        <property name="text">
         <string>max_iter:</string>
        </property>
@@ -358,6 +385,9 @@
      </item>
      <item row="10" column="0">
       <widget class="QLabel" name="label_dfs">
+       <property name="toolTip">
+        <string>Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one (‘ovo’) is always used as multi-class strategy. The parameter is ignored for binary classification.</string>
+       </property>
        <property name="text">
         <string>Decision Function Shape:</string>
        </property>
@@ -368,6 +398,12 @@
      </item>
      <item row="11" column="0">
       <widget class="QLabel" name="label_breakTies">
+       <property name="toolTip">
+        <string>If true, decision_function_shape='ovr', and number of classes &gt; 2, predict will break ties according to the confidence values of decision_function; otherwise the first class among the tied classes is returned. Please note that breaking ties comes at a relatively high computational cost compared to a simple predict.</string>
+       </property>
+       <property name="statusTip">
+        <string/>
+       </property>
        <property name="text">
         <string>Break Ties:</string>
        </property>

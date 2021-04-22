@@ -80,23 +80,25 @@ class svm_gui(QWidget):
         #opening a QFileDialog to get folder path
         self.folderPath = str(QFileDialog.getExistingDirectory(self, "Select training Data folder"))
 
-        #setting lineEdit_folderPath to self.folderPath
-        self.lineEdit_folderPath.setText(self.folderPath)
+        if self.folderPath:
 
-        #getting label names from folder names in self.folderPath
-        self.folders = os.listdir(self.folderPath)
+            #setting lineEdit_folderPath to self.folderPath
+            self.lineEdit_folderPath.setText(self.folderPath)
 
-        #outputting to console text edit box
-        self.textEdit_output.append(f"<b>Training Data Location: </b>" + self.folderPath)
-        self.textEdit_output.append("")
-        self.textEdit_output.append(f"<b>Labels For Training: </b>")
+            #getting label names from folder names in self.folderPath
+            self.folders = os.listdir(self.folderPath)
 
-        for folder in self.folders:
-            self.textEdit_output.append(folder)
-        self.textEdit_output.append("")
+            #outputting to console text edit box
+            self.textEdit_output.append(f"<b>Training Data Location: </b>" + self.folderPath)
+            self.textEdit_output.append("")
+            self.textEdit_output.append(f"<b>Labels For Training: </b>")
 
-        #making createSVM button clickable
-        self.bttn_createSVM.setEnabled(True)
+            for folder in self.folders:
+                self.textEdit_output.append(folder)
+            self.textEdit_output.append("")
+
+            #making createSVM button clickable
+            self.bttn_createSVM.setEnabled(True)
 
 
     #function for when the Create SVM button is clicked. This is where code for

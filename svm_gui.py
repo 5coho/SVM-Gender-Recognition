@@ -73,6 +73,7 @@ class svm_gui(QWidget):
 
 
     #Connection for the browse button tho get the training data file path
+    # if path needs to be added
     @pyqtSlot()
     def bttn_browse_clicked(self):
 
@@ -201,7 +202,7 @@ class svm_gui(QWidget):
 
         self.textEdit_output.append("DONE")
         self.textEdit_output.append("")
-        self.textEdit_output.append(f"<b>Time Taken:</b> {end-start}")
+        self.textEdit_output.append(f"<b>Time Taken:</b> {round(end-start,2)}")
 
         #getting training accuracy
         training_accuracy = self.svm.score(X_test, y_test)

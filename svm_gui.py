@@ -189,20 +189,25 @@ class svm_gui(QWidget):
         #creating the svm
         self.svm = SVC(C=c_val, kernel=kernel_val, degree=degree_val, gamma=gamma_val, coef0=coef0_val, shrinking=shrinking_val, probability=probability_val, tol=tol_val, cache_size=cache_size_val, class_weight=None, verbose=False, max_iter=max_iter_val, decision_function_shape=decision_function_shape_val, break_ties=break_ties_val, random_state=None)
 
+
         self.textEdit_output.append("DONE")
         self.textEdit_output.append("")
         self.textEdit_output.append("<b>Training SVM (This may take awhile)...</b>")
 
         #training the svm
+        start = time.time()
         self.svm.fit(X_train, y_train)
+        end = time.time()
 
         self.textEdit_output.append("DONE")
         self.textEdit_output.append("")
+        self.textEdit_output.append(f"<b>Time Taken:</b> {end-start}")
 
         #getting training accuracy
         training_accuracy = self.svm.score(X_test, y_test)
 
         self.textEdit_output.append(f"<b>Training Accuracy:</b> {training_accuracy}")
+        self.textEdit_output.append("")
 
         #setting the lcd_accuracy to training_accuracy
         self.lcd_accuracy.display(training_accuracy)
@@ -217,12 +222,19 @@ class svm_gui(QWidget):
     def bttn_save_clicked(self):
         #generating a default filename
         creationDate = date.today().strftime("%b-%d-%Y")
-        filename = f"svm_{creationDate}_{self.h_resize}x{self.w_resize}_{self.lcd_accuracy.value()}"
+        filename = f"svm_{creationDate}_{self.h_resize}x{self.w_resize}_{round(self.lcd_accuracy.value(), 4)}"
 
         #getting save path
-        path, _ = QFileDialog.getSaveFileName(None, "Save SVM", filename, "*.joblib")
+        path, name = QFileDialog.getSaveFileName(None, "Save SVM", filename, "*.joblib")
 
-        dump(self.svm, path)
+        if path:
+
+            #dumping object using joblib
+            dump(self.svm, path)
+
+            #outputting
+            self.textEdit_output.append(f"<b>Save Location:</b> {path}")
+            self.textEdit_output.append("")
 
 
     #function for when the clear output button is clicked
@@ -237,7 +249,7 @@ class svm_gui(QWidget):
 
         #generating a default filename
         outDate = date.today().strftime("%b-%d-%Y")
-        filename = f"svm_output_{outDate}_{self.lcd_accuracy.value()}"
+        filename = f"svm_output_{outDate}_{round(self.lcd_accuracy.value(), 4)}"
 
         path, _ = QFileDialog.getSaveFileName(None, "Save Output", filename, "*.txt")
         if path:

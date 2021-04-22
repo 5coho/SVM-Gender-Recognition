@@ -32,6 +32,10 @@
   <property name="windowTitle">
    <string>SVM Maker</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../media/SVMmaker.ico</normaloff>../media/SVMmaker.ico</iconset>
+  </property>
   <property name="toolTip">
    <string/>
   </property>

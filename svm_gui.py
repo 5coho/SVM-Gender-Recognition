@@ -16,8 +16,9 @@ __python_version__  = "3.9.4"
 import cv2
 import sys
 import time
+import os
 from datetime import date
-from joblib import *
+from joblib import dump
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
@@ -25,7 +26,10 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.uic import loadUi
-import numpy as np
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+import numpy
 
 
 #The GUI class
@@ -42,6 +46,14 @@ class svm_gui(QWidget):
 
         #folder path to the training data
         self.folderPath = ""
+
+        #folder names in folderPath.
+        #these will be used as labels for svm_maker_gui
+        self.folders = []
+
+        #sizes for resizing the training images
+        self.h_resize = 130
+        self.w_resize = 70
 
         #making the buttons unclickable unclickable
         self.bttn_save.setEnabled(False)
@@ -70,8 +82,16 @@ class svm_gui(QWidget):
         #setting lineEdit_folderPath to self.folderPath
         self.lineEdit_folderPath.setText(self.folderPath)
 
+        #getting label names from folder names in self.folderPath
+        self.folders = os.listdir(self.folderPath)
+
         #outputting to console text edit box
         self.textEdit_output.append(f"<b>Training Data Location: </b>" + self.folderPath)
+        self.textEdit_output.append("")
+        self.textEdit_output.append(f"<b>Labels For Training: </b>")
+
+        for folder in self.folders:
+            self.textEdit_output.append(folder)
         self.textEdit_output.append("")
 
         #making createSVM button clickable
@@ -113,6 +133,80 @@ class svm_gui(QWidget):
         decision_function_shape_val = str(self.comboBox_dfs.currentText())
         break_ties_val = bool(self.comboBox_breakTies.currentText())
 
+        #lists for training data
+        X = []
+        y = []
+
+        self.textEdit_output.append("<b>Creating X, y...</b>")
+
+        #gathering images, creating X, y and image processing
+        for folder in self.folders:
+            label = folder
+            for file in os.listdir(os.path.join(self.folderPath, folder)):
+
+                #making image GrayScale
+                image = cv2.imread(os.path.join(os.path.join(self.folderPath, folder), file), cv2.IMREAD_GRAYSCALE)
+                image = cv2.resize(image, (self.h_resize, self.w_resize))
+
+                X.append(image)
+                y.append(label)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+        self.textEdit_output.append("<b>Converting to numpy array...</b>")
+
+        #converting X and y to numpy arrays
+        X = numpy.array(X)
+        y = numpy.array(y)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+
+        self.textEdit_output.append("<b>Reshaping Numpy Arrays...</b>")
+
+        #rehaping the arrays
+        Xori = X.reshape(X.shape[0], X.shape[1]*X.shape[2])
+        yori = y.reshape(y.shape[0])
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+        self.textEdit_output.append("<b>Shuffling X, y...</b>")
+
+        #shuffling Xori an yori
+        X, y = shuffle(Xori, yori)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+        self.textEdit_output.append("<b>Spitting Training data 80-20...</b>")
+
+        #splitting
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+        self.textEdit_output.append("<b>Creating SVM...</b>")
+
+        #creating the svm
+        self.svm = SVC(C=c_val, kernel=kernel_val, degree=degree_val, gamma=gamma_val, coef0=coef0_val, shrinking=shrinking_val, probability=probability_val, tol=tol_val, cache_size=cache_size_val, class_weight=None, verbose=False, max_iter=max_iter_val, decision_function_shape=decision_function_shape_val, break_ties=break_ties_val, random_state=None)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+        self.textEdit_output.append("<b>Training SVM (This may take awhile)...</b>")
+
+        #training the svm
+        self.svm.fit(X_train, y_train)
+
+        self.textEdit_output.append("DONE")
+        self.textEdit_output.append("")
+
+        #getting training accuracy
+        training_accuracy = self.svm.score(X_test, y_test)
+
+        self.textEdit_output.append(f"<b>Training Accuracy:</b> {training_accuracy}")
+
+        #setting the lcd_accuracy to training_accuracy
+        self.lcd_accuracy.display(training_accuracy)
+
         #making save button clickable AFTER SVM is created
         self.bttn_save.setEnabled(True)
 
@@ -121,8 +215,14 @@ class svm_gui(QWidget):
     #has been created
     @pyqtSlot()
     def bttn_save_clicked(self):
-        #path, _ = QFileDialog.getOpenFileName(None, "Load Protein", "stufffffffffffffffff", Joblib Files (*.joblib)")
-        self.textEdit_output.append("<b>Save Button clicked</b>")
+        #generating a default filename
+        creationDate = date.today().strftime("%b-%d-%Y")
+        filename = f"svm_{creationDate}_{self.h_resize}x{self.w_resize}_{self.lcd_accuracy.value()}"
+
+        #getting save path
+        path, _ = QFileDialog.getSaveFileName(None, "Save SVM", filename, "*.joblib")
+
+        dump(self.svm, path)
 
 
     #function for when the clear output button is clicked

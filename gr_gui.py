@@ -32,6 +32,7 @@ from PyQt5.uic import loadUi
 from matplotlib import pyplot as plt
 import numpy as np
 from HaarCascade import haarcascade
+from HaarCascadeSVM import HaarCascadeSVM
 from RGB2GrayTransformer import RGB2GrayTransformer
 from HogTransformer import HogTransformer
 import threading
@@ -55,7 +56,8 @@ class gr_gui(QWidget):
     #the constructor
     def __init__(self):
         super(gr_gui, self).__init__()
-        loadUi("gui/gender_recognition_gui.ui", self)
+        loadUi("gui/josh_highly_experimental_gui.ui", self)
+        # here we load in josh custom GUI
         self.image = None
         self.imageRecog = None
         self.cap = None
@@ -64,12 +66,13 @@ class gr_gui(QWidget):
         #self.cd = CrackDetection()
         self.capThread = Thread()
         self._load_connects()
+        self.useSVM = False
 
 
     #load the connects for buttons to functions
     def _load_connects(self):
         self.bttn_load_image.clicked.connect(self.bttn_load_image_clicked)
-        #self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
+        self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
         #self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
         self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
         #self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
@@ -79,33 +82,52 @@ class gr_gui(QWidget):
         self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
         self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
         #self.capThread.changePixmap.connect(self.setImage)
+        self.sgd_button.clicked.connect(self.bttn_sgd_clicked)
+        self.svm_button.clicked.connect(self.bttn_svm_clicked)
+        self.plainTextEdit.insertPlainText("SGD Selected!\nNote: Loading classifier not required")
+        # josh added the above three lines
 
 
+    @pyqtSlot()
+    def bttn_sgd_clicked(self):
+
+        self.plainTextEdit.clear()
+        self.plainTextEdit.insertPlainText("SGD Selected!\nNote: Loading classifier not required")
+        self.useSVM = False
+
+    @pyqtSlot()
+    def bttn_svm_clicked(self):
+
+        self.plainTextEdit.clear()
+        self.plainTextEdit.insertPlainText("SVM Selected!\nNote: A classifier must be loaded")
+        self.useSVM = True
     #Loads the selected image and puts into image label
     @pyqtSlot()
     def bttn_load_image_clicked(self):
         filePath, _ = QFileDialog.getOpenFileNames(None, "Load Image", "", "Image Files (*.jpg *.jpeg *.png *.bmp)")
 
         if filePath:
+
             self.image = cv2.imread(filePath[0])
             self.image_filepath.setText(filePath[0])
             pixmap = QPixmap(filePath[0])
             pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
             self.image_label.setPixmap(pixmap)
             self.image_label.setAlignment(Qt.AlignCenter)
-            # self.thread = QThread()
-            # self.worker = Worker()
-            # self.worker.moveToThread(self.thread)
-            # self.thread.started.connect(self.worker.run(filePath))
-            # self.worker.finished.connect(self.thread.quit)
-            # self.worker.finished.connect(self.worker.deleteLater)
-            # self.thread.finished.connect(self.thread.deleteLater)
-            # self.worker.progress.connect(self.reportProgress)
-            # self.thread.start()
-            print(filePath)
-            print("afterpath")
-            joshthing = haarcascade(filePath[0])
-            image_to_put = joshthing.getImage()
+            # here we check if we want to use a SVM or SGD
+            # then we must check to make sure the SVM has been
+            # loaded in if we selected it
+            if not self.useSVM:
+                joshthing = haarcascade(filePath[0])
+                image_to_put = joshthing.getImage()
+            elif self.clf is not None:
+
+                joshthing = HaarCascadeSVM(filePath[0],self.clf)
+                image_to_put = joshthing.getImage()
+            else:
+                self.plainTextEdit.clear()
+                self.plainTextEdit.insertPlainText("No classifier selected, try again")
+                return
             pixmap = QPixmap(image_to_put)
             pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
             self.image_proc_label.setPixmap(pixmap)
@@ -120,8 +142,10 @@ class gr_gui(QWidget):
         filePath, _ = QFileDialog.getOpenFileNames(self, "Load Classifier", "", "Joblib Files (*.joblib)")
 
         if filePath:
+
             self.clf_filepath.setText(filePath[0])
             self.clf = load(filePath[0])
+
 
 
     #The function that detects a cracks from an image and puts in label
@@ -150,12 +174,14 @@ class gr_gui(QWidget):
         self.capThread.setLabel(self.capture_label)
         self.capThread.setFpsLabel(self.fps_label)
         self.capThread.setClf(self.clf)
-
+        self.capThread.set_useSVM(self.useSVM)
 
 
     #The function that detects a cracks from a capture device ie) webcam and puts in label
     # This is the buttonn that will start the camera and get pictures
     @pyqtSlot()
+    # not sure if the capturedImage part is used or what it does
+    # might remove
     def bttn_detect_capture_clicked(self):
         self._setThread()
         self.capThread.setLabel(self.capture_label)
@@ -175,14 +201,14 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_release_cap_clicked(self):
-        print("clicked this")
+
         self.capThread.endCap()
         self.capThread.terminate()
 
 
     @pyqtSlot()
     def bttn_show_image_clicked(self):
-        print("clicked that")
+
         b,g,r = cv2.split(self.image)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -193,7 +219,7 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_show_image_proc_clicked(self):
-        print("clicked something")
+
         b,g,r = cv2.split(self.imageCrack)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -232,8 +258,6 @@ class gr_gui(QWidget):
         if filePath:
             cv2.imwrite(filePath, self.imageCrack)
 
-    def doIt(self):
-        print("did it")
 
 #the thread class for Video Capture
 #not engineered very well
@@ -259,6 +283,7 @@ class Thread(QThread):
         self.greenRec = False
         self.smoothProb = False
         self.imageToPut = None
+        self.useSVM = False
 
     def run(self):
         while True:
@@ -267,13 +292,20 @@ class Thread(QThread):
 
                 start = time.time()
                 # we write each frame as a .jpg
-                cv2.imwrite("C:/Users/Josh/PycharmProjects/CPSC371Project/VidCapture/newframe.jpg",frame)
+                cv2.imwrite("VidCapture/newframe.jpg",frame)
                 if cv2.waitKey(10) & 0xFF == ord("q"):
                     break
 
                 # for every image we create a new object of haarcascade then get the resulting image
-                joshthing = haarcascade("C:/Users/Josh/PycharmProjects/CPSC371Project/VidCapture/newframe.jpg")
-                image_to_put = joshthing.getImage()
+
+                if not self.useSVM:
+
+                    joshthing = haarcascade("VidCapture/newframe.jpg")
+                    image_to_put = joshthing.getImage()
+                elif self.clf is not None:
+                    joshthing = HaarCascadeSVM("VidCapture/newframe.jpg", self.clf)
+                    image_to_put = joshthing.getImage()
+
                 pixmap = QPixmap(image_to_put)
                 pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
                 self.label.setPixmap(pixmap)
@@ -289,8 +321,7 @@ class Thread(QThread):
     #lots of setters
     def getImageToPut(self):
         return self.imageToPut
-    def joshIt(self):
-        print("joshed")
+
     def endCap(self):
         self.cap.release()
         self.label.clear()
@@ -308,7 +339,8 @@ class Thread(QThread):
 
         self.cd = cd
 
-
+    def set_useSVM(self,newBool):
+        self.useSVM = newBool
     def setClf(self, clf):
         self.clf = clf
 

@@ -22,85 +22,72 @@ import pprint
 import pickle
 import shutil
 from RGB2GrayTransformer import RGB2GrayTransformer
+from sklearn.svm import SVC
+from sklearn.utils import shuffle
 
-class haarcascade():
-# this class is for the SGD
-# the haarcascade class performs to haarcascade to get faces
-# then it also predicts whether the face is male or female.
-    def __init__(self,filename):
 
+class HaarCascadeSVM:
+# this class is used for the SVM
+    def __init__(self,filename,clf):
+
+        #clf = joblib.load(f"firstTest.joblib")
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         img = cv2.imread(filename)
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        faces = face_cascade.detectMultiScale(gray,1.3,5)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         roi_colorList = []
         savedXList = []
         savedYList = []
-
-        for (x,y,w,h) in faces:
+        for (x, y, w, h) in faces:
             # find all faces and make rectangles for them
             # make .jpg for each rectangle
-            img = cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+            img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
             savedXList.append(x)
             savedYList.append(y)
-            roi_gray = gray[y:y+h,x:x+w]
-            roi_color = img[y:y+h,x:x+w]
+            roi_gray = gray[y:y + h, x:x + w]
+            roi_color = img[y:y + h, x:x + w]
             roi_colorList.append(roi_color)
-
-        scalify = joblib.load(f'jobscalifier.pkl')
         data = dict()
-        data['label'] = []
-        data['filename'] = []
         data['data'] = []
+        data['label'] = []
         shutil.rmtree('NewJpg')
         os.mkdir('NewJpg')
-        isRect = False
         for i in range(len(roi_colorList)):
             # we write a jpg for each of the rectangle images.
             isRect = True
             cv2.imwrite('NewJpg/rulersmall'+str(i)+'.jpg',roi_colorList[i])
-        # load classifier
-        clf = joblib.load(f'faceclassifier.joblib')
-        current_path = os.path.join(os.getcwd(),'NewJpg')
+
+        current_path = os.path.join(os.getcwd(), 'NewJpg')
         i = 0
         # scott is using size 130 by 70
         if isRect:
             for files in os.listdir(current_path):
                 # if there were faces detected then read them, add
                 # them to data.
-                im = imread("NewJpg/rulersmall"+str(i)+".jpg")
-                im = resize(im,(150,150))
-                data['label'].append("male")
-                data['filename'].append("rulersmall"+str(i)+".jpg")
-                data['data'].append(im)
-                i+=1
-        # load classifier utilities
-        grayify = joblib.load(f'jobscalifier2.pkl')
-        hogify = joblib.load(f'jobscalifier3.pkl')
-
+                im = imread("NewJpg/rulersmall" + str(i) + ".jpg")
+                im = resize(im, (150, 150))
+                image = cv2.imread("NewJpg/rulersmall" + str(i) + ".jpg", cv2.IMREAD_GRAYSCALE)
+                image = cv2.resize(image, (130, 70))
+                data['data'].append(image)
+                data['label'].append('male')
+                i += 1
         if isRect:
             X = np.array(data['data'])
-            y = np.array(data['label'])
-            X_test = X
-            y_test = y
-            X_test_gray = grayify.fit_transform(X_test)
-            X_test_hog = hogify.fit_transform(X_test_gray)
-            X_test_prepared = scalify.transform(X_test_hog)
-            y_pred = clf.predict(X_test_prepared)
+            Xori = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
+            y_test = np.array(data['label'])
+            X_test = shuffle(Xori)
+            y_pred = clf.predict(X_test)
 
             for i in range(len(y_pred)):
-                # write text on each image saying male or female
                 cv2.putText(img, str(y_pred[i]), (savedXList[i], savedYList[i] - 6), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.imwrite('NewJpg/finalpic.jpg',img)
+            cv2.imwrite('NewJpg/finalpic.jpg', img)
             self.finalImage = 'NewJpg/finalpic.jpg'
-
         else:
             self.finalImage = filename
 
 
     def getImage(self):
-    # return the image which has a rectangle over the face(s)
-    # and text saying the gender
+
         return self.finalImage
 

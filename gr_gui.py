@@ -63,7 +63,6 @@ class gr_gui(QWidget):
         self.cap = None
         self.figureCount = 1
         self.clf = None
-        #self.cd = CrackDetection()
         self.capThread = Thread()
         self._load_connects()
         self.useSVM = False

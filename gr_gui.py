@@ -20,7 +20,7 @@ from joblib import load
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread,QObject,pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QApplication
@@ -31,9 +31,24 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.uic import loadUi
 from matplotlib import pyplot as plt
 import numpy as np
-
+from HaarCascade import haarcascade
+from RGB2GrayTransformer import RGB2GrayTransformer
+from HogTransformer import HogTransformer
+import threading
+import os
 
 #The GUI class
+class Worker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+
+    def run(self,filePath):
+        """Long-running task."""
+        haarcascade(filePath)
+        self.progress.emit( 1)
+        self.finished.emit()
+
+
 class gr_gui(QWidget):
 
 
@@ -61,8 +76,8 @@ class gr_gui(QWidget):
         #self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
         self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
         #self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
-        #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
-        #self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
+        self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
+        self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
         #self.capThread.changePixmap.connect(self.setImage)
 
 
@@ -78,9 +93,28 @@ class gr_gui(QWidget):
             pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
             self.image_label.setPixmap(pixmap)
             self.image_label.setAlignment(Qt.AlignCenter)
+            # self.thread = QThread()
+            # self.worker = Worker()
+            # self.worker.moveToThread(self.thread)
+            # self.thread.started.connect(self.worker.run(filePath))
+            # self.worker.finished.connect(self.thread.quit)
+            # self.worker.finished.connect(self.worker.deleteLater)
+            # self.thread.finished.connect(self.thread.deleteLater)
+            # self.worker.progress.connect(self.reportProgress)
+            # self.thread.start()
+            print(filePath)
+            print("afterpath")
+            joshthing = haarcascade(filePath[0])
+            image_to_put = joshthing.getImage()
+            pixmap = QPixmap(image_to_put)
+            pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
+            self.image_proc_label.setPixmap(pixmap)
+
 
 
     #loads the classifier
+    def joshdunno(self,filePath):
+        haarcascade(filePath)
     @pyqtSlot()
     def bttn_load_clf_clicked(self):
         filePath, _ = QFileDialog.getOpenFileNames(self, "Load Classifier", "", "Joblib Files (*.joblib)")
@@ -94,21 +128,15 @@ class gr_gui(QWidget):
     @pyqtSlot()
     def bttn_detect_clicked(self):
         threshold = self.lcd_prob.value() * 0.01
-
         imageCopy = self.image.copy()
-
         start = time.time()
         time.sleep(2)
-        #self.imageCrack = self.cd.detectCrack(imageCopy, self.clf, threshold, roiSize, roiShift, process, self.check_red.isChecked(), self.check_red_rec.isChecked(), self.check_crack_prob.isChecked(), self.check_green.isChecked(), self.check_green_rec.isChecked(), self.check_smooth_prob.isChecked())
         end = time.time()
-
         elapsed = end - start
         self.time_label.setText("{0:.5f} s".format(elapsed))
-
         height, width, channel = self.imageCrack.shape
         bytesPerLine = channel * width
         qimageCrack = QImage(self.imageCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-
         pixmap = QPixmap(qimageCrack)
         pixmap = pixmap.scaled(self.image_proc_label.width(), self.image_proc_label.height(), Qt.KeepAspectRatio)
         self.image_proc_label.setPixmap(pixmap)
@@ -117,28 +145,27 @@ class gr_gui(QWidget):
 
     #the function for setting up the Thread Object from GUI
     def _setThread(self):
+
         self.capThread.setCap(cv2.VideoCapture(int(self.combo_capture_device.currentText())))
         self.capThread.setLabel(self.capture_label)
         self.capThread.setFpsLabel(self.fps_label)
-        self.capThread.setCd(self.cd)
         self.capThread.setClf(self.clf)
-        self.capThread.setThreshold(self.lcd_prob.value() * 0.01)
-        self.capThread.setRoiSize(int(self.combo_size.currentText()))
-        self.capThread.setRoiShift(int(self.combo_shift.currentText()))
-        self.capThread.setProcess(self._get_process())
-        self.capThread.setRed(self.check_red.isChecked())
-        self.capThread.setRedRec(self.check_red_rec.isChecked())
-        self.capThread.setCrackProb(self.check_crack_prob.isChecked())
-        self.capThread.setGreen(self.check_green.isChecked())
-        self.capThread.setGreenRec(self.check_green_rec.isChecked())
-        self.capThread.setSmoothProb(self.check_smooth_prob.isChecked())
+
 
 
     #The function that detects a cracks from a capture device ie) webcam and puts in label
+    # This is the buttonn that will start the camera and get pictures
     @pyqtSlot()
     def bttn_detect_capture_clicked(self):
         self._setThread()
+        self.capThread.setLabel(self.capture_label)
         self.capThread.start()
+        capturedImage = self.capThread.getImageToPut()
+        pixmap = QPixmap(capturedImage)
+        pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
+        self.capture_label.setPixmap(pixmap)
+
+
 
 
     @pyqtSlot(QImage)
@@ -148,12 +175,14 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_release_cap_clicked(self):
+        print("clicked this")
         self.capThread.endCap()
         self.capThread.terminate()
 
 
     @pyqtSlot()
     def bttn_show_image_clicked(self):
+        print("clicked that")
         b,g,r = cv2.split(self.image)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -164,6 +193,7 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_show_image_proc_clicked(self):
+        print("clicked something")
         b,g,r = cv2.split(self.imageCrack)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -202,6 +232,8 @@ class gr_gui(QWidget):
         if filePath:
             cv2.imwrite(filePath, self.imageCrack)
 
+    def doIt(self):
+        print("did it")
 
 #the thread class for Video Capture
 #not engineered very well
@@ -226,6 +258,7 @@ class Thread(QThread):
         self.green = False
         self.greenRec = False
         self.smoothProb = False
+        self.imageToPut = None
 
     def run(self):
         while True:
@@ -233,25 +266,31 @@ class Thread(QThread):
             if ret:
 
                 start = time.time()
-                frameCrack = self.cd.detectCrack(frame, self.clf, self.threshold, self.roiSize, self.roiShift, self.process, self.red, self.redRec, self.crackProb, self.green, self.greenRec, self.smoothProb)
+                # we write each frame as a .jpg
+                cv2.imwrite("C:/Users/Josh/PycharmProjects/CPSC371Project/VidCapture/newframe.jpg",frame)
+                if cv2.waitKey(10) & 0xFF == ord("q"):
+                    break
+
+                # for every image we create a new object of haarcascade then get the resulting image
+                joshthing = haarcascade("C:/Users/Josh/PycharmProjects/CPSC371Project/VidCapture/newframe.jpg")
+                image_to_put = joshthing.getImage()
+                pixmap = QPixmap(image_to_put)
+                pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
+                self.label.setPixmap(pixmap)
+                self.imageToPut = image_to_put
                 end = time.time()
 
                 if (end - start) > 0:
-                    fps = 1/(end - start)
+                    fps = 1 / (end - start)
                     self.fpsLabel.setText(str(fps))
                 else:
                     self.fpsLabel.setText("---------")
 
-                height, width, channel = frameCrack.shape
-                bytesPerLine = channel * width
-                pixmap = QImage(frameCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-
-                pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
-                self.label.setAlignment(Qt.AlignCenter)
-                self.changePixmap.emit(pixmap)
-
-
     #lots of setters
+    def getImageToPut(self):
+        return self.imageToPut
+    def joshIt(self):
+        print("joshed")
     def endCap(self):
         self.cap.release()
         self.label.clear()
@@ -266,7 +305,9 @@ class Thread(QThread):
         self.fpsLabel = fpsLabel
 
     def setCd(self, cd):
+
         self.cd = cd
+
 
     def setClf(self, clf):
         self.clf = clf

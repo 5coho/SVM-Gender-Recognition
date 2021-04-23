@@ -118,12 +118,21 @@ class gr_gui(QWidget):
             # then we must check to make sure the SVM has been
             # loaded in if we selected it
             if not self.useSVM:
-                joshthing = haarcascade(filePath[0])
-                image_to_put = joshthing.getImage()
+            # haarcascade() class is used to get rectangles around the face,
+            # tell whether the rectangle contents are male or female, and create
+            # a new image with the rectangle around the face and a label for
+            # the gender. getImage() returns this particular image
+                haarObject = haarcascade(filePath[0])
+                print("at this point")
+                haarObject.face_cascade_start()
+                haarObject.predict_gender()
+                image_to_put = haarObject.getImage()
             elif self.clf is not None:
 
-                joshthing = HaarCascadeSVM(filePath[0],self.clf)
-                image_to_put = joshthing.getImage()
+                haarObject = HaarCascadeSVM(filePath[0],self.clf)
+                haarObject.face_cascade_start()
+                haarObject.predict_gender()
+                image_to_put = haarObject.getImage()
             else:
                 self.plainTextEdit.clear()
                 self.plainTextEdit.insertPlainText("No classifier selected, try again")
@@ -297,14 +306,24 @@ class Thread(QThread):
                     break
 
                 # for every image we create a new object of haarcascade then get the resulting image
+                # from it
 
                 if not self.useSVM:
-
-                    joshthing = haarcascade("VidCapture/newframe.jpg")
-                    image_to_put = joshthing.getImage()
+                # if not SVM then we use SGD
+                # haarcascade() class is used to get rectangles around the face,
+                # tell whether the rectangle contents are male or female, and create
+                # a new image with the rectangle around the face and a label for
+                # the gender. getImage() returns this particular image
+                    haarObject = haarcascade("VidCapture/newframe.jpg")
+                    haarObject.face_cascade_start()
+                    haarObject.predict_gender()
+                    image_to_put = haarObject.getImage()
                 elif self.clf is not None:
-                    joshthing = HaarCascadeSVM("VidCapture/newframe.jpg", self.clf)
-                    image_to_put = joshthing.getImage()
+                # make sure a SVM is loaded
+                    haarObject = HaarCascadeSVM("VidCapture/newframe.jpg", self.clf)
+                    haarObject.face_cascade_start()
+                    haarObject.predict_gender()
+                    image_to_put = haarObject.getImage()
 
                 pixmap = QPixmap(image_to_put)
                 pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
@@ -313,6 +332,7 @@ class Thread(QThread):
                 end = time.time()
 
                 if (end - start) > 0:
+                # here calculate frames per second of camera
                     fps = 1 / (end - start)
                     self.fpsLabel.setText(str(fps))
                 else:

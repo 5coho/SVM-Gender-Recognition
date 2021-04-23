@@ -31,6 +31,7 @@ class HaarCascadeSVM:
     def __init__(self,filename,clf):
 
         #clf = joblib.load(f"firstTest.joblib")
+        isRect = False
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         img = cv2.imread(filename)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -61,6 +62,9 @@ class HaarCascadeSVM:
         current_path = os.path.join(os.getcwd(), 'NewJpg')
         i = 0
         # scott is using size 130 by 70
+        # isRect is set to True in the above for loop when we have found a face in the picture
+        # if no face is found then there will be no rectangle, hence we do not need to do the
+        # following if it's False
         if isRect:
             for files in os.listdir(current_path):
                 # if there were faces detected then read them, add
@@ -80,6 +84,7 @@ class HaarCascadeSVM:
             y_pred = clf.predict(X_test)
 
             for i in range(len(y_pred)):
+                # here we put the text of male or female on the image
                 cv2.putText(img, str(y_pred[i]), (savedXList[i], savedYList[i] - 6), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.imwrite('NewJpg/finalpic.jpg', img)
             self.finalImage = 'NewJpg/finalpic.jpg'

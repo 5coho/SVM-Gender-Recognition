@@ -30,6 +30,7 @@ class haarcascade():
     def __init__(self,filename):
 
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        # load haar cascade, read image, make a grayscale copy
         img = cv2.imread(filename)
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -40,7 +41,7 @@ class haarcascade():
 
         for (x,y,w,h) in faces:
             # find all faces and make rectangles for them
-            # make .jpg for each rectangle
+            # make .jpg for each face in rectangle
             img = cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
             savedXList.append(x)
             savedYList.append(y)
@@ -84,6 +85,8 @@ class haarcascade():
             y = np.array(data['label'])
             X_test = X
             y_test = y
+            # for the SGD we have to make it gray, do the gradient, and
+            # scale it
             X_test_gray = grayify.fit_transform(X_test)
             X_test_hog = hogify.fit_transform(X_test_gray)
             X_test_prepared = scalify.transform(X_test_hog)
@@ -92,6 +95,7 @@ class haarcascade():
             for i in range(len(y_pred)):
                 # write text on each image saying male or female
                 cv2.putText(img, str(y_pred[i]), (savedXList[i], savedYList[i] - 6), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            # write image to disk
             cv2.imwrite('NewJpg/finalpic.jpg',img)
             self.finalImage = 'NewJpg/finalpic.jpg'
 

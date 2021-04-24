@@ -73,7 +73,7 @@ class HaarCascadeSVM:
 
         current_path = os.path.join(os.getcwd(), 'NewJpg')
         i = 0
-        # scott is using size 130 by 70
+        
         # isRect is set to True in the above for loop when we have found a face in the picture
         # if no face is found then there will be no rectangle, hence we do not need to do the
         # following if it's False

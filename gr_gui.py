@@ -20,7 +20,7 @@ from joblib import load
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread,QObject,pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QApplication
@@ -31,9 +31,25 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.uic import loadUi
 from matplotlib import pyplot as plt
 import numpy as np
-
+from HaarCascadeSGD import haarcascade
+from HaarCascadeSVM import HaarCascadeSVM
+from RGB2GrayTransformer import RGB2GrayTransformer
+from HogTransformer import HogTransformer
+import threading
+import os
 
 #The GUI class
+class Worker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+
+    def run(self,filePath):
+        """Long-running task."""
+        haarcascade(filePath)
+        self.progress.emit( 1)
+        self.finished.emit()
+
+
 class gr_gui(QWidget):
 
 
@@ -41,6 +57,7 @@ class gr_gui(QWidget):
     def __init__(self):
         super(gr_gui, self).__init__()
         loadUi("gui/gender_recognition_gui.ui", self)
+        # here we load in josh custom GUI
         self.image = None
         self.imageRecog = None
         self.cap = None
@@ -49,66 +66,110 @@ class gr_gui(QWidget):
         #self.cd = CrackDetection()
         self.capThread = Thread()
         self._load_connects()
+        self.useSVM = False
 
 
     #load the connects for buttons to functions
     def _load_connects(self):
         self.bttn_load_image.clicked.connect(self.bttn_load_image_clicked)
-        #self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
+        self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
         #self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
         self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
         #self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
         #self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
         self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
         #self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
-        #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
-        #self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
+        self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
+        self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
         #self.capThread.changePixmap.connect(self.setImage)
+        self.sgd_button.clicked.connect(self.bttn_sgd_clicked)
+        self.svm_button.clicked.connect(self.bttn_svm_clicked)
+        self.plainTextEdit.insertPlainText("SGD Selected!\nNote: Loading classifier not required")
+        # josh added the above three lines
 
 
+    @pyqtSlot()
+    def bttn_sgd_clicked(self):
+
+        self.plainTextEdit.clear()
+        self.plainTextEdit.insertPlainText("SGD Selected!\nNote: Loading classifier not required")
+        self.useSVM = False
+
+    @pyqtSlot()
+    def bttn_svm_clicked(self):
+
+        self.plainTextEdit.clear()
+        self.plainTextEdit.insertPlainText("SVM Selected!\nNote: A classifier must be loaded")
+        self.useSVM = True
     #Loads the selected image and puts into image label
     @pyqtSlot()
     def bttn_load_image_clicked(self):
         filePath, _ = QFileDialog.getOpenFileNames(None, "Load Image", "", "Image Files (*.jpg *.jpeg *.png *.bmp)")
 
         if filePath:
+
             self.image = cv2.imread(filePath[0])
             self.image_filepath.setText(filePath[0])
             pixmap = QPixmap(filePath[0])
             pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
             self.image_label.setPixmap(pixmap)
             self.image_label.setAlignment(Qt.AlignCenter)
+            # here we check if we want to use a SVM or SGD
+            # then we must check to make sure the SVM has been
+            # loaded in if we selected it
+            if not self.useSVM:
+            # haarcascade() class is used to get rectangles around the face,
+            # tell whether the rectangle contents are male or female, and create
+            # a new image with the rectangle around the face and a label for
+            # the gender. getImage() returns this particular image
+                haarObject = haarcascade(filePath[0])
+                print("at this point")
+                haarObject.face_cascade_start()
+                haarObject.predict_gender()
+                image_to_put = haarObject.getImage()
+            elif self.clf is not None:
+
+                haarObject = HaarCascadeSVM(filePath[0],self.clf)
+                haarObject.face_cascade_start()
+                haarObject.predict_gender()
+                image_to_put = haarObject.getImage()
+            else:
+                self.plainTextEdit.clear()
+                self.plainTextEdit.insertPlainText("No classifier selected, try again")
+                return
+            pixmap = QPixmap(image_to_put)
+            pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
+            self.image_proc_label.setPixmap(pixmap)
+
 
 
     #loads the classifier
+    def joshdunno(self,filePath):
+        haarcascade(filePath)
     @pyqtSlot()
     def bttn_load_clf_clicked(self):
         filePath, _ = QFileDialog.getOpenFileNames(self, "Load Classifier", "", "Joblib Files (*.joblib)")
 
         if filePath:
+
             self.clf_filepath.setText(filePath[0])
             self.clf = load(filePath[0])
+
 
 
     #The function that detects a cracks from an image and puts in label
     @pyqtSlot()
     def bttn_detect_clicked(self):
         threshold = self.lcd_prob.value() * 0.01
-
         imageCopy = self.image.copy()
-
         start = time.time()
         time.sleep(2)
-        #self.imageCrack = self.cd.detectCrack(imageCopy, self.clf, threshold, roiSize, roiShift, process, self.check_red.isChecked(), self.check_red_rec.isChecked(), self.check_crack_prob.isChecked(), self.check_green.isChecked(), self.check_green_rec.isChecked(), self.check_smooth_prob.isChecked())
         end = time.time()
-
         elapsed = end - start
         self.time_label.setText("{0:.5f} s".format(elapsed))
-
         height, width, channel = self.imageCrack.shape
         bytesPerLine = channel * width
         qimageCrack = QImage(self.imageCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-
         pixmap = QPixmap(qimageCrack)
         pixmap = pixmap.scaled(self.image_proc_label.width(), self.image_proc_label.height(), Qt.KeepAspectRatio)
         self.image_proc_label.setPixmap(pixmap)
@@ -117,28 +178,29 @@ class gr_gui(QWidget):
 
     #the function for setting up the Thread Object from GUI
     def _setThread(self):
+
         self.capThread.setCap(cv2.VideoCapture(int(self.combo_capture_device.currentText())))
         self.capThread.setLabel(self.capture_label)
         self.capThread.setFpsLabel(self.fps_label)
-        self.capThread.setCd(self.cd)
         self.capThread.setClf(self.clf)
-        self.capThread.setThreshold(self.lcd_prob.value() * 0.01)
-        self.capThread.setRoiSize(int(self.combo_size.currentText()))
-        self.capThread.setRoiShift(int(self.combo_shift.currentText()))
-        self.capThread.setProcess(self._get_process())
-        self.capThread.setRed(self.check_red.isChecked())
-        self.capThread.setRedRec(self.check_red_rec.isChecked())
-        self.capThread.setCrackProb(self.check_crack_prob.isChecked())
-        self.capThread.setGreen(self.check_green.isChecked())
-        self.capThread.setGreenRec(self.check_green_rec.isChecked())
-        self.capThread.setSmoothProb(self.check_smooth_prob.isChecked())
+        self.capThread.set_useSVM(self.useSVM)
 
 
     #The function that detects a cracks from a capture device ie) webcam and puts in label
+    # This is the buttonn that will start the camera and get pictures
     @pyqtSlot()
+    # not sure if the capturedImage part is used or what it does
+    # might remove
     def bttn_detect_capture_clicked(self):
         self._setThread()
+        self.capThread.setLabel(self.capture_label)
         self.capThread.start()
+        capturedImage = self.capThread.getImageToPut()
+        pixmap = QPixmap(capturedImage)
+        pixmap = pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio)
+        self.capture_label.setPixmap(pixmap)
+
+
 
 
     @pyqtSlot(QImage)
@@ -148,12 +210,14 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_release_cap_clicked(self):
+
         self.capThread.endCap()
         self.capThread.terminate()
 
 
     @pyqtSlot()
     def bttn_show_image_clicked(self):
+
         b,g,r = cv2.split(self.image)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -164,6 +228,7 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_show_image_proc_clicked(self):
+
         b,g,r = cv2.split(self.imageCrack)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
@@ -226,6 +291,8 @@ class Thread(QThread):
         self.green = False
         self.greenRec = False
         self.smoothProb = False
+        self.imageToPut = None
+        self.useSVM = False
 
     def run(self):
         while True:
@@ -233,25 +300,48 @@ class Thread(QThread):
             if ret:
 
                 start = time.time()
-                frameCrack = self.cd.detectCrack(frame, self.clf, self.threshold, self.roiSize, self.roiShift, self.process, self.red, self.redRec, self.crackProb, self.green, self.greenRec, self.smoothProb)
+                # we write each frame as a .jpg
+                cv2.imwrite("VidCapture/newframe.jpg",frame)
+                if cv2.waitKey(10) & 0xFF == ord("q"):
+                    break
+
+                # for every image we create a new object of haarcascade then get the resulting image
+                # from it
+
+                if not self.useSVM:
+                # if not SVM then we use SGD
+                # haarcascade() class is used to get rectangles around the face,
+                # tell whether the rectangle contents are male or female, and create
+                # a new image with the rectangle around the face and a label for
+                # the gender. getImage() returns this particular image
+                    haarObject = haarcascade("VidCapture/newframe.jpg")
+                    haarObject.face_cascade_start()
+                    haarObject.predict_gender()
+                    image_to_put = haarObject.getImage()
+                elif self.clf is not None:
+                # make sure a SVM is loaded
+                    haarObject = HaarCascadeSVM("VidCapture/newframe.jpg", self.clf)
+                    haarObject.face_cascade_start()
+                    haarObject.predict_gender()
+                    image_to_put = haarObject.getImage()
+
+                pixmap = QPixmap(image_to_put)
+                pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
+                self.label.setPixmap(pixmap)
+                self.imageToPut = image_to_put
                 end = time.time()
 
                 if (end - start) > 0:
-                    fps = 1/(end - start)
+                # here calculate frames per second of camera
+                    fps = 1 / (end - start)
                     self.fpsLabel.setText(str(fps))
                 else:
                     self.fpsLabel.setText("---------")
 
-                height, width, channel = frameCrack.shape
-                bytesPerLine = channel * width
-                pixmap = QImage(frameCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-
-                pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
-                self.label.setAlignment(Qt.AlignCenter)
-                self.changePixmap.emit(pixmap)
-
-
     #lots of setters
+    def getImageToPut(self):
+        return self.imageToPut
+
     def endCap(self):
         self.cap.release()
         self.label.clear()
@@ -266,8 +356,11 @@ class Thread(QThread):
         self.fpsLabel = fpsLabel
 
     def setCd(self, cd):
+
         self.cd = cd
 
+    def set_useSVM(self,newBool):
+        self.useSVM = newBool
     def setClf(self, clf):
         self.clf = clf
 

@@ -29,12 +29,27 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Gender Recognition (When Working)</string>
+   <string>Crack Detection Test Environment v0.0.4</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../media/GenderRecognition.ico</normaloff>../media/GenderRecognition.ico</iconset>
-  </property>
+  <widget class="QPushButton" name="bttn_detect">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>230</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Detect Cracks on Image</string>
+   </property>
+   <property name="default">
+    <bool>true</bool>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
+   </property>
+  </widget>
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
@@ -617,14 +632,14 @@
   <widget class="QPushButton" name="bttn_detect_capture">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>190</x>
      <y>230</y>
-     <width>231</width>
+     <width>191</width>
      <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Gender Recognition from Capture Device</string>
+    <string>Detect Cracks from Capture Device</string>
    </property>
    <property name="default">
     <bool>true</bool>

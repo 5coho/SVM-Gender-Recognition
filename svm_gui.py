@@ -208,7 +208,7 @@ class svm_gui(QWidget):
 
         #getting training accuracy
         training_accuracy = self.svm.score(X_test, y_test)
-
+        self.svm.predict(X_test)
         self.textEdit_output.append(f"<b>Training Accuracy:</b> {training_accuracy}")
         self.textEdit_output.append("")
 

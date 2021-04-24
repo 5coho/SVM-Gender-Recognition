@@ -17,10 +17,14 @@ __python_version__      = "3.9.4"
 import sys
 from gr_gui import *
 from PyQt5.QtWidgets import QApplication
+from HaarCascadeSGD import haarcascade
+from RGB2GrayTransformer import RGB2GrayTransformer
+from HogTransformer import HogTransformer
 
 
 #the main function
 def main():
+    #joshthing = haarcascade('C:/Users/Josh/PycharmProjects/CPSC371Project/biden.jpg')
     app = QApplication(sys.argv)
     gui = gr_gui()
     gui.show()

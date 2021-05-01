@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1686</width>
-    <height>785</height>
+    <width>1301</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,122 +18,28 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1686</width>
-    <height>785</height>
+    <width>1301</width>
+    <height>900</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1686</width>
-    <height>785</height>
+    <width>1301</width>
+    <height>900</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>Crack Detection Test Environment v0.0.4</string>
+   <string>SVM Gender Recognition</string>
   </property>
-  <widget class="QGroupBox" name="prob_group">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>150</y>
-     <width>371</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Probability Threshold</string>
-   </property>
-   <widget class="QSlider" name="slider_prob">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>261</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="maximum">
-     <number>100</number>
-    </property>
-    <property name="value">
-     <number>60</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-    <property name="tickPosition">
-     <enum>QSlider::TicksBothSides</enum>
-    </property>
-   </widget>
-   <widget class="QLCDNumber" name="lcd_prob">
-    <property name="geometry">
-     <rect>
-      <x>290</x>
-      <y>20</y>
-      <width>71</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="smallDecimalPoint">
-     <bool>false</bool>
-    </property>
-    <property name="digitCount">
-     <number>3</number>
-    </property>
-    <property name="segmentStyle">
-     <enum>QLCDNumber::Flat</enum>
-    </property>
-    <property name="value" stdset="0">
-     <double>60.000000000000000</double>
-    </property>
-    <property name="intValue" stdset="0">
-     <number>60</number>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="bttn_detect">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>230</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Detect Cracks on Image</string>
-   </property>
-   <property name="default">
-    <bool>true</bool>
-   </property>
-   <property name="flat">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="Line" name="line">
-   <property name="geometry">
-    <rect>
-     <x>380</x>
-     <y>8</y>
-     <width>21</width>
-     <height>771</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-  </widget>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../media/GenderRecognition.ico</normaloff>../media/GenderRecognition.ico</iconset>
+  </property>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>400</x>
-     <y>10</y>
+     <x>10</x>
+     <y>130</y>
      <width>1281</width>
      <height>771</height>
     </rect>
@@ -161,7 +67,7 @@
      <property name="geometry">
       <rect>
        <x>506</x>
-       <y>705</y>
+       <y>709</y>
        <width>261</width>
        <height>31</height>
       </rect>
@@ -368,7 +274,7 @@
     <widget class="QGroupBox" name="capture_group">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>50</x>
        <y>10</y>
        <width>1181</width>
        <height>721</height>
@@ -477,23 +383,23 @@
     </widget>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="input_group">
+  <widget class="QGroupBox" name="group_vid">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>840</x>
      <y>10</y>
      <width>371</width>
-     <height>131</height>
+     <height>101</height>
     </rect>
    </property>
    <property name="title">
-    <string>Input</string>
+    <string>Video Analysis</string>
    </property>
    <widget class="QLabel" name="video_label">
     <property name="geometry">
      <rect>
       <x>9</x>
-      <y>49</y>
+      <y>16</y>
       <width>103</width>
       <height>30</height>
      </rect>
@@ -517,124 +423,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QTextEdit" name="image_filepath">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>20</y>
-      <width>266</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>266</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="verticalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="horizontalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="sizeAdjustPolicy">
-     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-    </property>
-    <property name="lineWrapMode">
-     <enum>QTextEdit::NoWrap</enum>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-    <property name="placeholderText">
-     <string>Image Filepath</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="bttn_load_clf">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>85</y>
-      <width>77</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>77</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="text">
-     <string>Load Classifier</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="clf_filepath">
-    <property name="geometry">
-     <rect>
-      <x>93</x>
-      <y>86</y>
-      <width>266</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>266</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="verticalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="horizontalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
-    </property>
-    <property name="sizeAdjustPolicy">
-     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-    </property>
-    <property name="lineWrapMode">
-     <enum>QTextEdit::NoWrap</enum>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-    <property name="placeholderText">
-     <string>Classifier Filepath</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="bttn_load_image">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>19</y>
-      <width>75</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>75</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="text">
-     <string>Load Image</string>
-    </property>
-   </widget>
    <widget class="QComboBox" name="combo_capture_device">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>55</y>
-      <width>81</width>
+      <x>121</x>
+      <y>22</y>
+      <width>241</width>
       <height>20</height>
      </rect>
     </property>
@@ -694,41 +488,200 @@
      </property>
     </item>
    </widget>
+   <widget class="QPushButton" name="bttn_detect_capture">
+    <property name="geometry">
+     <rect>
+      <x>142</x>
+      <y>53</y>
+      <width>221</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Gender Recognition from Capture Device</string>
+    </property>
+    <property name="default">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
-  <widget class="QPushButton" name="bttn_detect_capture">
+  <widget class="QGroupBox" name="group_image">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>230</y>
-     <width>191</width>
-     <height>41</height>
+     <x>460</x>
+     <y>10</y>
+     <width>371</width>
+     <height>101</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Detect Cracks from Capture Device</string>
+   <property name="title">
+    <string>Image Analysis</string>
    </property>
-   <property name="default">
-    <bool>true</bool>
+   <widget class="QPushButton" name="bttn_load_image">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>75</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>75</width>
+      <height>25</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Load Image</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="image_filepath">
+    <property name="geometry">
+     <rect>
+      <x>94</x>
+      <y>20</y>
+      <width>266</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>266</width>
+      <height>25</height>
+     </size>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+    </property>
+    <property name="lineWrapMode">
+     <enum>QTextEdit::NoWrap</enum>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="placeholderText">
+     <string>Image Filepath</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="bttn_detect">
+    <property name="geometry">
+     <rect>
+      <x>189</x>
+      <y>54</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Gender Recognition on Image</string>
+    </property>
+    <property name="default">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="group_classifier">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>10</y>
+     <width>361</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>SVM</string>
+   </property>
+   <widget class="QPushButton" name="bttn_load_clf">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>85</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>25</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>85</width>
+      <height>25</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Load SVM</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="clf_filepath">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>20</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>266</width>
+      <height>25</height>
+     </size>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+    </property>
+    <property name="lineWrapMode">
+     <enum>QTextEdit::NoWrap</enum>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="placeholderText">
+     <string>SVM Filepath</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>115</y>
+     <width>1281</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>slider_prob</sender>
-   <signal>sliderMoved(int)</signal>
-   <receiver>lcd_prob</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>150</x>
-     <y>510</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>335</x>
-     <y>510</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

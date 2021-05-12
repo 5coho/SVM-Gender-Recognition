@@ -46,6 +46,7 @@ class gr_gui(QWidget):
         self.cap = None
         self.figureCount = 1
         self.clf = None
+        self.cascade = cv2.CascadeClassifier('haar_cascades/haarcascade_frontalface_alt2.xml')
         #self.cd = CrackDetection()
         self.capThread = Thread()
         self._load_connects()
@@ -54,11 +55,11 @@ class gr_gui(QWidget):
     #load the connects for buttons to functions
     def _load_connects(self):
         self.bttn_load_image.clicked.connect(self.bttn_load_image_clicked)
-        #self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
-        #self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
+        self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
+        self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
         self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
         #self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
-        #self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
+        self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
         self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
         #self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
         #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
@@ -90,26 +91,32 @@ class gr_gui(QWidget):
             self.clf = load(filePath[0])
 
 
-    #The function that detects a cracks from an image and puts in label
+    #The function that detects faces and classifies them
+    #classified image is then added to image_proc_label
     @pyqtSlot()
     def bttn_detect_clicked(self):
-        threshold = self.lcd_prob.value() * 0.01
 
         imageCopy = self.image.copy()
+        imageCopyGray = cv2.cvtColor(imageCopy, cv2.COLOR_BGR2GRAY)
 
         start = time.time()
-        time.sleep(2)
-        #self.imageCrack = self.cd.detectCrack(imageCopy, self.clf, threshold, roiSize, roiShift, process, self.check_red.isChecked(), self.check_red_rec.isChecked(), self.check_crack_prob.isChecked(), self.check_green.isChecked(), self.check_green_rec.isChecked(), self.check_smooth_prob.isChecked())
+
+        faces = self.cascade.detectMultiScale(imageCopyGray, 1.3, 5)
+
+        for (x,y,w,h) in faces:
+            imageCopy = cv2.rectangle(imageCopy,(x,y),(x+w,y+h),(0,255,0),2)
+
         end = time.time()
 
         elapsed = end - start
         self.time_label.setText("{0:.5f} s".format(elapsed))
 
-        height, width, channel = self.imageCrack.shape
-        bytesPerLine = channel * width
-        qimageCrack = QImage(self.imageCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
 
-        pixmap = QPixmap(qimageCrack)
+        height, width, channel = imageCopy.shape
+        bytesPerLine = channel * width
+        qImageCopy = QImage(imageCopy.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
+
+        pixmap = QPixmap(qImageCopy)
         pixmap = pixmap.scaled(self.image_proc_label.width(), self.image_proc_label.height(), Qt.KeepAspectRatio)
         self.image_proc_label.setPixmap(pixmap)
         self.image_proc_label.setAlignment(Qt.AlignCenter)

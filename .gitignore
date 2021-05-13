@@ -130,3 +130,6 @@ dmypy.json
 
 #training data folder -- too large
 /training_data
+
+#vscode
+.vscode/

@@ -62,9 +62,9 @@ class gr_gui(QWidget):
         self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
         self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
         self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
-        #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
-        #self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
-        #self.capThread.changePixmap.connect(self.setImage)
+        self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
+        self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
+        self.capThread.changePixmap.connect(self.setImage)
 
 
     #Loads the selected image and puts into image label
@@ -127,21 +127,10 @@ class gr_gui(QWidget):
         self.capThread.setCap(cv2.VideoCapture(int(self.combo_capture_device.currentText())))
         self.capThread.setLabel(self.capture_label)
         self.capThread.setFpsLabel(self.fps_label)
-        self.capThread.setCd(self.cd)
+        self.capThread.setCascade(self.cascade)
         self.capThread.setClf(self.clf)
-        self.capThread.setThreshold(self.lcd_prob.value() * 0.01)
-        self.capThread.setRoiSize(int(self.combo_size.currentText()))
-        self.capThread.setRoiShift(int(self.combo_shift.currentText()))
-        self.capThread.setProcess(self._get_process())
-        self.capThread.setRed(self.check_red.isChecked())
-        self.capThread.setRedRec(self.check_red_rec.isChecked())
-        self.capThread.setCrackProb(self.check_crack_prob.isChecked())
-        self.capThread.setGreen(self.check_green.isChecked())
-        self.capThread.setGreenRec(self.check_green_rec.isChecked())
-        self.capThread.setSmoothProb(self.check_smooth_prob.isChecked())
 
 
-    #The function that detects a cracks from a capture device ie) webcam and puts in label
     @pyqtSlot()
     def bttn_detect_capture_clicked(self):
         self._setThread()
@@ -190,9 +179,9 @@ class gr_gui(QWidget):
         plt.figure(self.figureCount)
         self.figureCount = self.figureCount + 1
         plt.subplot(121)
-        plt.imshow(img1) # expects distorted color
+        plt.imshow(img1)
         plt.subplot(122)
-        plt.imshow(img2) # expect true color
+        plt.imshow(img2)
         plt.show()
 
 
@@ -211,7 +200,6 @@ class gr_gui(QWidget):
 
 
 #the thread class for Video Capture
-#not engineered very well
 class Thread(QThread):
 
     changePixmap = pyqtSignal(QImage)
@@ -221,18 +209,9 @@ class Thread(QThread):
         self.cap = None
         self.label = None
         self.fpsLabel = None
-        self.cd = None
+        self.cascade = None
         self.clf = None
-        self.threshold = None
-        self.roiSize = None
-        self.roiShift = None
-        self.process = None
-        self.red = True
-        self.redRec = False
-        self.crackProb = False
-        self.green = False
-        self.greenRec = False
-        self.smoothProb = False
+
 
     def run(self):
         while True:
@@ -240,25 +219,37 @@ class Thread(QThread):
             if ret:
 
                 start = time.time()
-                frameCrack = self.cd.detectCrack(frame, self.clf, self.threshold, self.roiSize, self.roiShift, self.process, self.red, self.redRec, self.crackProb, self.green, self.greenRec, self.smoothProb)
-                end = time.time()
 
-                if (end - start) > 0:
-                    fps = 1/(end - start)
-                    self.fpsLabel.setText(str(fps))
-                else:
-                    self.fpsLabel.setText("---------")
+                frameCopyGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                height, width, channel = frameCrack.shape
+                faces = self.cascade.detectMultiScale(frameCopyGray, 1.3, 5)
+
+                for (x,y,w,h) in faces:
+                    frame = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+
+
+                height, width, channel = frame.shape
                 bytesPerLine = channel * width
-                pixmap = QImage(frameCrack.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
+                pixmap = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
 
                 pixmap = pixmap.scaled(self.label.width(), self.label.height(), Qt.KeepAspectRatio)
                 self.label.setAlignment(Qt.AlignCenter)
                 self.changePixmap.emit(pixmap)
 
+                end = time.time()
 
-    #lots of setters
+                if (end - start) > 0:
+                    fps = 1/(end - start)
+                    fps = round(fps, 4)
+                    self.fpsLabel.setText(str(fps))
+                else:
+                    self.fpsLabel.setText("---------")
+
+            else:
+                print("something when wrong")
+
+
+    #setters
     def endCap(self):
         self.cap.release()
         self.label.clear()
@@ -272,38 +263,8 @@ class Thread(QThread):
     def setFpsLabel(self, fpsLabel):
         self.fpsLabel = fpsLabel
 
-    def setCd(self, cd):
-        self.cd = cd
+    def setCascade(self, cascade):
+        self.cascade = cascade
 
     def setClf(self, clf):
         self.clf = clf
-
-    def setThreshold(self, threshold):
-        self.threshold = threshold
-
-    def setRoiSize(self, roiSize):
-        self.roiSize = roiSize
-
-    def setRoiShift(self, roiShift):
-        self.roiShift = roiShift
-
-    def setProcess(self, process):
-        self.process = process
-
-    def setRed(self, red):
-        self.red = red
-
-    def setRedRec(self, redRec):
-        self.redRec = redRec
-
-    def setCrackProb(self, crackProb):
-        self.crackProb = crackProb
-
-    def setGreen(self, green):
-        self.green = green
-
-    def setGreenRec(self, greenRec):
-        self.greenRec = greenRec
-
-    def setSmoothProb(self, smoothProb):
-        self.smoothProb = smoothProb

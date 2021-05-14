@@ -58,10 +58,10 @@ class gr_gui(QWidget):
         self.bttn_load_clf.clicked.connect(self.bttn_load_clf_clicked)
         self.bttn_detect.clicked.connect(self.bttn_detect_clicked)
         self.bttn_show_image.clicked.connect(self.bttn_show_image_clicked)
-        #self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
+        self.bttn_show_image_proc.clicked.connect(self.bttn_show_image_proc_clicked)
         self.bttn_compare.clicked.connect(self.bttn_compare_clicked)
         self.bttn_image_save.clicked.connect(self.bttn_image_save_clicked)
-        #self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
+        self.bttn_image_save_proc.clicked.connect(self.bttn_image_save_proc_clicked)
         #self.bttn_detect_capture.clicked.connect(self.bttn_detect_capture_clicked)
         #self.bttn_release_cap.clicked.connect(self.bttn_release_cap_clicked)
         #self.capThread.changePixmap.connect(self.setImage)
@@ -96,15 +96,15 @@ class gr_gui(QWidget):
     @pyqtSlot()
     def bttn_detect_clicked(self):
 
-        imageCopy = self.image.copy()
-        imageCopyGray = cv2.cvtColor(imageCopy, cv2.COLOR_BGR2GRAY)
+        self.imageRecog = self.image.copy()
+        imageCopyGray = cv2.cvtColor(self.imageRecog, cv2.COLOR_BGR2GRAY)
 
         start = time.time()
 
         faces = self.cascade.detectMultiScale(imageCopyGray, 1.3, 5)
 
         for (x,y,w,h) in faces:
-            imageCopy = cv2.rectangle(imageCopy,(x,y),(x+w,y+h),(0,255,0),2)
+            self.imageRecog = cv2.rectangle(self.imageRecog,(x,y),(x+w,y+h),(0,255,0),2)
 
         end = time.time()
 
@@ -112,9 +112,9 @@ class gr_gui(QWidget):
         self.time_label.setText("{0:.5f} s".format(elapsed))
 
 
-        height, width, channel = imageCopy.shape
+        height, width, channel = self.imageRecog.shape
         bytesPerLine = channel * width
-        qImageCopy = QImage(imageCopy.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
+        qImageCopy = QImage(self.imageRecog.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
 
         pixmap = QPixmap(qImageCopy)
         pixmap = pixmap.scaled(self.image_proc_label.width(), self.image_proc_label.height(), Qt.KeepAspectRatio)
@@ -171,7 +171,7 @@ class gr_gui(QWidget):
 
     @pyqtSlot()
     def bttn_show_image_proc_clicked(self):
-        b,g,r = cv2.split(self.imageCrack)
+        b,g,r = cv2.split(self.imageRecog)
         img2 = cv2.merge([r,g,b])
         plt.figure(self.figureCount)
         self.figureCount = self.figureCount + 1
@@ -184,7 +184,7 @@ class gr_gui(QWidget):
         b1,g1,r1 = cv2.split(self.image)
         img1 = cv2.merge([r1,g1,b1])
 
-        b2,g2,r2 = cv2.split(self.imageCrack)
+        b2,g2,r2 = cv2.split(self.imageRecog)
         img2 = cv2.merge([r2,g2,b2])
 
         plt.figure(self.figureCount)
@@ -207,7 +207,7 @@ class gr_gui(QWidget):
     def bttn_image_save_proc_clicked(self):
         filePath, _ = QFileDialog.getSaveFileName(None, "Save Image", "", "*.jpg;;*.jpeg;;*.png;;*.bmp")
         if filePath:
-            cv2.imwrite(filePath, self.imageCrack)
+            cv2.imwrite(filePath, self.imageRecog)
 
 
 #the thread class for Video Capture
